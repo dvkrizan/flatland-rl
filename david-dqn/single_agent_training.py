@@ -71,9 +71,9 @@ def train_agent(n_episodes):
 
     env.reset(True, True)
 
-    # We render the initial step and show the obsereved cells as colored boxes
+    ## We render the initial step and show the obsereved cells as colored boxes
     env_renderer = RenderTool(env)
-    env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
+    env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=True)
 
     
     
@@ -121,18 +121,14 @@ def train_agent(n_episodes):
     # Double Dueling DQN policy
     policy = DDDQNPolicy(state_size, action_size, Namespace(**training_parameters))
 
-    
-
-
-
+  
     for episode_idx in range(n_episodes):
         score = 0
 
         # Reset environment
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
 
-        
-        
+
         # Build agent specific observations
         for agent in env.get_agent_handles():
             if obs[agent]:
@@ -143,23 +139,18 @@ def train_agent(n_episodes):
         for step in range(max_steps - 1):
             for agent in env.get_agent_handles():
 
-                position = env.agents[agent].position
-                direction = env.agents[agent].direction
-                if position:
-                    transitions = np.asarray(env.rail.get_transitions(*position, direction))
-                    print(transitions.shape)
-                    print(type(transitions))
-
                 if info['action_required'][agent]:
                     # If an action is required, we want to store the obs at that step as well as the action
                     update_values = True
                     action = policy.act(agent_obs[agent], eps=eps_start)
-                    if position:
-                        if transitions[action] == 0:
-                            action=0
-                            # test = np.nonzero(transitions)
-                            # action = np.random.choice(transitions[np.nonzero(transitions)])
-                            
+                    position = env.agents[agent].position
+                    if position: # Agent is on the map
+                        direction = env.agents[agent].direction
+                        transitions = np.asarray(env.rail.get_transitions(*position, direction))
+                        # Check if the action requested is allowed. If not return action to stand still.
+                        allowable_action = policy.allowable_actions(action, position, direction, transitions)
+                        action = allowable_action
+                        
                     action_count[action] += 1
                 else:
                     update_values = False
@@ -169,8 +160,9 @@ def train_agent(n_episodes):
             # Environment step
             next_obs, all_rewards, done, info = env.step(action_dict)
 
+            ## Render video
             env_renderer.render_env(show=True, frames=True, show_observations=True,
-                                    show_predictions=False)
+                                    show_predictions=True)
             
 
             # Update replay buffer and train agent

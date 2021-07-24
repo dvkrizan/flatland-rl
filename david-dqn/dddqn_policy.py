@@ -66,6 +66,59 @@ class DDDQNPolicy(Policy):
         else:
             return random.choice(np.arange(self.action_size))
 
+
+    def allowable_actions(self, action, position, direction, transitions):
+        # ACTIONS:
+        # DO_NOTHING = 0  # implies change of direction in a dead-end!
+        # MOVE_LEFT = 1
+        # MOVE_FORWARD = 2
+        # MOVE_RIGHT = 3
+        # STOP_MOVING = 4
+
+        # DIRECTION:
+        # int representing the current orientation {0: North, 1: East, 2: South, 3: West}
+
+        # TRANSITIONS:
+        # 4D vector with the transition probability ordered as 
+        # [North, East, South, West] given the initial orientation.
+        
+        if action == 0 or action == 4:
+            # Agents wants to do nothing or stop moving. Ok.
+            return action
+
+        if action == 2:
+            # Agent wants to move forward.
+            # Check transition to see allowable directions
+            allowable_directions = np.flatnonzero(transitions)
+            # Is agent facing an alllowable direction
+            if direction in allowable_directions:
+                # If yes can move in that direction
+                return action
+            else:
+                # Otherwise don't move
+                return 0
+
+        if action == 1:
+            # Agent wants to turn left
+            # Check transition to see allowable directions
+            allowable_directions = np.flatnonzero(transitions)
+            # Is agent facing an alllowable direction that will allow a left turn?
+            if direction - 1 in allowable_directions:
+                return action
+            else:
+                return 0
+
+        if action == 3:
+            # Agent wants to turn right
+            # Check transition to see allowable directions
+            allowable_directions = np.flatnonzero(transitions)
+            # Is agent facing an alllowable direction that will allow a rigth turn?
+            if direction + 1 in allowable_directions:
+                return action
+            else:
+                return 0
+
+
     def step(self, state, action, reward, next_state, done):
         assert not self.evaluation_mode, "Policy has been initialized for evaluation only."
 
