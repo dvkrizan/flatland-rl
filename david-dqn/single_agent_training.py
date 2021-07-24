@@ -1,5 +1,5 @@
 import random
-import sys
+import os, sys
 from argparse import ArgumentParser, Namespace
 from collections import deque
 from pathlib import Path
@@ -7,7 +7,7 @@ from pathlib import Path
 base_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(base_dir))
 
-from reinforcement_learning.dddqn_policy import DDDQNPolicy
+from dddqn_policy import DDDQNPolicy
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -17,7 +17,7 @@ from flatland.envs.rail_generators import sparse_rail_generator
 from flatland.envs.schedule_generators import sparse_schedule_generator
 from utils.observation_utils import normalize_observation
 from flatland.envs.observations import TreeObsForRailEnv
-
+from flatland.utils.rendertools import RenderTool
 """
 This file shows how to train a single agent using a reinforcement learning approach.
 Documentation: https://flatland.aicrowd.com/getting-started/rl/single-agent.html
@@ -32,9 +32,9 @@ def train_agent(n_episodes):
     n_agents = 1
     x_dim = 25
     y_dim = 25
-    n_cities = 4
-    max_rails_between_cities = 2
-    max_rails_in_city = 3
+    n_cities = 2
+    max_rails_between_cities = 3
+    max_rails_in_city = 2
     seed = 42
 
     # Observation parameters
@@ -71,6 +71,12 @@ def train_agent(n_episodes):
 
     env.reset(True, True)
 
+    # We render the initial step and show the obsereved cells as colored boxes
+    env_renderer = RenderTool(env)
+    env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
+
+    
+    
     # Calculate the state size given the depth of the tree observation and the number of features
     n_features_per_node = env.obs_builder.observation_dim
     print (f"Number of features per node is {n_features_per_node}")
@@ -115,12 +121,18 @@ def train_agent(n_episodes):
     # Double Dueling DQN policy
     policy = DDDQNPolicy(state_size, action_size, Namespace(**training_parameters))
 
+    
+
+
+
     for episode_idx in range(n_episodes):
         score = 0
 
         # Reset environment
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
 
+        
+        
         # Build agent specific observations
         for agent in env.get_agent_handles():
             if obs[agent]:
@@ -130,10 +142,24 @@ def train_agent(n_episodes):
         # Run episode
         for step in range(max_steps - 1):
             for agent in env.get_agent_handles():
+
+                position = env.agents[agent].position
+                direction = env.agents[agent].direction
+                if position:
+                    transitions = np.asarray(env.rail.get_transitions(*position, direction))
+                    print(transitions.shape)
+                    print(type(transitions))
+
                 if info['action_required'][agent]:
                     # If an action is required, we want to store the obs at that step as well as the action
                     update_values = True
                     action = policy.act(agent_obs[agent], eps=eps_start)
+                    if position:
+                        if transitions[action] == 0:
+                            action=0
+                            # test = np.nonzero(transitions)
+                            # action = np.random.choice(transitions[np.nonzero(transitions)])
+                            
                     action_count[action] += 1
                 else:
                     update_values = False
@@ -142,6 +168,10 @@ def train_agent(n_episodes):
 
             # Environment step
             next_obs, all_rewards, done, info = env.step(action_dict)
+
+            env_renderer.render_env(show=True, frames=True, show_observations=True,
+                                    show_predictions=False)
+            
 
             # Update replay buffer and train agent
             for agent in range(env.get_num_agents()):
@@ -173,7 +203,10 @@ def train_agent(n_episodes):
 
         if episode_idx % 100 == 0:
             end = "\n"
-            torch.save(policy.qnetwork_local, './checkpoints/single-' + str(episode_idx) + '.pth')
+            checkpoint_dir = 'david-dqn/checkpoints/'
+            filename = f'single-{str(episode_idx)}.pth'
+            filename_path = os.path.join(checkpoint_dir, filename)
+            torch.save(policy.qnetwork_local, filename_path)
             action_count = [1] * action_size
         else:
             end = " "
@@ -198,7 +231,8 @@ def train_agent(n_episodes):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-n", "--n_episodes", dest="n_episodes", help="number of episodes to run", default=2, type=int)
+    parser.add_argument("-n", "--n_episodes", dest="n_episodes", help="number of episodes to run", default=1, type=int)
     args = parser.parse_args()
 
-    train_agent(args.n_episodes)
+    # train_agent(args.n_episodes)
+    train_agent(1)

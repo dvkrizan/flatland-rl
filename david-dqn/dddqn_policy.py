@@ -9,8 +9,8 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from reinforcement_learning.model import DuelingQNetwork
-from reinforcement_learning.policy import Policy
+from model import DuelingQNetwork
+from policy import Policy
 
 
 class DDDQNPolicy(Policy):
