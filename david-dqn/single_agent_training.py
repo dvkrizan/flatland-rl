@@ -33,8 +33,8 @@ def train_agent(n_episodes):
     x_dim = 25
     y_dim = 25
     n_cities = 2
-    max_rails_between_cities = 3
-    max_rails_in_city = 2
+    max_rails_between_cities = 2
+    max_rails_in_city = 3
     seed = 42
 
     # Observation parameters
@@ -79,7 +79,7 @@ def train_agent(n_episodes):
     
     # Calculate the state size given the depth of the tree observation and the number of features
     n_features_per_node = env.obs_builder.observation_dim
-    print (f"Number of features per node is {n_features_per_node}")
+    print (f"Number of features per node is {n_features_per_node}\n")
     n_nodes = 0
     for i in range(observation_tree_depth + 1):
         n_nodes += np.power(4, i)
@@ -140,8 +140,7 @@ def train_agent(n_episodes):
             for agent in env.get_agent_handles():
 
                 if info['action_required'][agent]:
-                    # If an action is required, we want to store the obs at that step as well as the action
-                    update_values = True
+                    
                     action = policy.act(agent_obs[agent], eps=eps_start)
                     position = env.agents[agent].position
                     if position: # Agent is on the map
@@ -150,8 +149,13 @@ def train_agent(n_episodes):
                         # Check if the action requested is allowed. If not return action to stand still.
                         allowable_action = policy.allowable_actions(action, position, direction, transitions)
                         action = allowable_action
-                        
-                    action_count[action] += 1
+                        # If an action is required, we want to store the obs at that step as well as the action
+                        if action != 0:
+                            update_values = True
+                            action_count[action] += 1
+                        else:
+                            update_values = False
+                            action = 0
                 else:
                     update_values = False
                     action = 0
