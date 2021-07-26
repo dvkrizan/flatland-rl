@@ -116,3 +116,6 @@ flatland-rl.code-workspace
 .vscode/launch.json
 .DS_Store
 david-dqn/checkpoints/single-0.pth
+*.pth
+david-dqn/test.ipynb
+david-dqn/test2.ipynb

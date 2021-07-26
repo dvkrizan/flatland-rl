@@ -4,6 +4,8 @@ from argparse import ArgumentParser, Namespace
 from collections import deque
 from pathlib import Path
 
+from PIL import Image
+
 base_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(base_dir))
 
@@ -26,8 +28,11 @@ This is a simple method used for demonstration purposes.
 multi_agent_training.py is a better starting point to train your own solution!
 """
 
-
 def train_agent(n_episodes):
+    
+    # Flag on whether to show video
+    show_video = False
+    
     # Environment parameters
     n_agents = 1
     x_dim = 25
@@ -63,18 +68,20 @@ def train_agent(n_episodes):
             grid_mode=False,
             max_rails_between_cities=max_rails_between_cities,
             max_rails_in_city=max_rails_in_city
+            
         ),
         schedule_generator=sparse_schedule_generator(),
         number_of_agents=n_agents,
         obs_builder_object=tree_observation
+        
     )
 
     env.reset(True, True)
 
     ## We render the initial step and show the obsereved cells as colored boxes
-    env_renderer = RenderTool(env)
-    env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=True)
-
+    if show_video == True:
+        env_renderer = RenderTool(env)
+        env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=True)
     
     
     # Calculate the state size given the depth of the tree observation and the number of features
@@ -123,11 +130,15 @@ def train_agent(n_episodes):
 
   
     for episode_idx in range(n_episodes):
+
         score = 0
 
         # Reset environment
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
 
+        # Reset rendering of video
+        if show_video == True:
+            env_renderer.reset()
 
         # Build agent specific observations
         for agent in env.get_agent_handles():
@@ -142,20 +153,20 @@ def train_agent(n_episodes):
                 if info['action_required'][agent]:
                     
                     action = policy.act(agent_obs[agent], eps=eps_start)
-                    position = env.agents[agent].position
-                    if position: # Agent is on the map
-                        direction = env.agents[agent].direction
-                        transitions = np.asarray(env.rail.get_transitions(*position, direction))
-                        # Check if the action requested is allowed. If not return action to stand still.
-                        allowable_action = policy.allowable_actions(action, position, direction, transitions)
-                        action = allowable_action
-                        # If an action is required, we want to store the obs at that step as well as the action
-                        if action != 0:
-                            update_values = True
-                            action_count[action] += 1
-                        else:
-                            update_values = False
-                            action = 0
+                    # position = env.agents[agent].position
+                    # if position: # Agent is on the map
+                    #     direction = env.agents[agent].direction
+                    #     transitions = np.asarray(env.rail.get_transitions(*position, direction))
+                    #     # Check if the action requested is allowed. If not return action to stand still.
+                    #     allowable_action = policy.allowable_actions(action, position, direction, transitions)
+                    #     action = allowable_action
+                    #     # If an action is required, we want to store the obs at that step as well as the action
+                    #     if action != 0:
+                    #         update_values = True
+                    #         action_count[action] += 1
+                    #     else:
+                    #         update_values = False
+                    #         action = 0
                 else:
                     update_values = False
                     action = 0
@@ -165,7 +176,8 @@ def train_agent(n_episodes):
             next_obs, all_rewards, done, info = env.step(action_dict)
 
             ## Render video
-            env_renderer.render_env(show=True, frames=True, show_observations=True,
+            if show_video == True:
+                env_renderer.render_env(show=True, frames=True, show_observations=True,
                                     show_predictions=True)
             
 
@@ -231,4 +243,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # train_agent(args.n_episodes)
-    train_agent(1)
+    train_agent(500)
