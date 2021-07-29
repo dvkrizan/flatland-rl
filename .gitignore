@@ -120,3 +120,7 @@ david-dqn/checkpoints/single-0.pth
 david-dqn/test.ipynb
 david-dqn/test2.ipynb
 *.png
+*.1
+*.2
+*.0
+*.3

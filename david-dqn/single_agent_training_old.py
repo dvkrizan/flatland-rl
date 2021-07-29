@@ -33,19 +33,19 @@ multi_agent_training.py is a better starting point to train your own solution!
 def train_agent(n_episodes):
     
     # Flag on whether to show video
-    show_video = False
+    show_video = True
     
     # Environment parameters
     n_agents = 1
-    x_dim = 25
-    y_dim = 25
+    x_dim = 27
+    y_dim = 27
     n_cities = 2
     max_rails_between_cities = 2
     max_rails_in_city = 3
     seed = 42
 
     # Observation parameters
-    observation_tree_depth = 2
+    observation_tree_depth = 3
     observation_radius = 10
 
     # Exploration parameters
@@ -83,7 +83,7 @@ def train_agent(n_episodes):
     ## We render the initial step and show the obsereved cells as colored boxes
     if show_video == True:
         env_renderer = RenderTool(env)
-        env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=True)
+        env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
     
     
     # Calculate the state size given the depth of the tree observation and the number of features
@@ -152,6 +152,7 @@ def train_agent(n_episodes):
 
         # Run episode
         for step in range(max_steps - 1):
+            print(f'episode {episode_idx}: step {step}')
             for agent in env.get_agent_handles():
 
                 if info['action_required'][agent]:
@@ -182,8 +183,7 @@ def train_agent(n_episodes):
 
             ## Render video
             if show_video == True:
-                env_renderer.render_env(show=True, frames=True, show_observations=True,
-                                    show_predictions=True)
+                env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
             
 
             # Update replay buffer and train agent
@@ -212,7 +212,7 @@ def train_agent(n_episodes):
         scores_window.append(score / (max_steps * env.get_num_agents()))
         completion.append((np.mean(completion_window)))
         scores.append(np.mean(scores_window))
-        action_probs = np.round(action_count / np.sum(action_count), decimals=5)
+        action_probs = np.round(action_count / np.sum(action_count), decimals=4)
 
         if episode_idx % 100 == 0:
             end = "\n"
@@ -279,4 +279,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # train_agent(args.n_episodes)
-    train_agent(5)
+    train_agent(3)
