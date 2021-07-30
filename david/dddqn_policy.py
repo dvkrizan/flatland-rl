@@ -8,9 +8,9 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from reinforcement_learning.model import DuelingQNetwork
-from reinforcement_learning.policy import Policy, LearningPolicy
-from reinforcement_learning.replay_buffer import ReplayBuffer
+from model import DuelingQNetwork
+from policy import Policy, LearningPolicy
+from replay_buffer import ReplayBuffer
 
 
 class DDDQNPolicy(LearningPolicy):
