@@ -7,7 +7,7 @@ from pathlib import Path
 base_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(base_dir))
 
-from reinforcement_learning.dddqn_policy import DDDQNPolicy
+from dddqn_policy import DDDQNPolicy
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -17,6 +17,11 @@ from flatland.envs.rail_generators import sparse_rail_generator
 from flatland.envs.schedule_generators import sparse_schedule_generator
 from utils.observation_utils import normalize_observation
 from flatland.envs.observations import TreeObsForRailEnv
+
+import os
+from datetime import datetime
+from matplotlib.ticker import MaxNLocator
+from flatland.utils.rendertools import RenderTool
 
 """
 This file shows how to train a single agent using a reinforcement learning approach.
@@ -28,6 +33,9 @@ multi_agent_training.py is a better starting point to train your own solution!
 
 
 def train_agent(n_episodes):
+    # Flag on whether to show video
+    show_video = True
+    
     # Environment parameters
     n_agents = 1
     x_dim = 25
@@ -71,12 +79,19 @@ def train_agent(n_episodes):
 
     env.reset(True, True)
 
+    ## We render the initial step and show the obsereved cells as colored boxes
+    if show_video:
+        env_renderer = RenderTool(env)
+        env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
+
     # Calculate the state size given the depth of the tree observation and the number of features
     n_features_per_node = env.obs_builder.observation_dim
+    print (f"Number of features per node is {n_features_per_node}\n")
     n_nodes = 0
     for i in range(observation_tree_depth + 1):
         n_nodes += np.power(4, i)
     state_size = n_features_per_node * n_nodes
+    print(f'State size is {state_size}')
 
     # The action space of flatland is 5 discrete actions
     action_size = 5
@@ -92,6 +107,7 @@ def train_agent(n_episodes):
     completion_window = deque(maxlen=100)
     scores = []
     completion = []
+    epsilons = []
     action_count = [0] * action_size
     agent_obs = [None] * env.get_num_agents()
     agent_prev_obs = [None] * env.get_num_agents()
@@ -116,9 +132,15 @@ def train_agent(n_episodes):
 
     for episode_idx in range(n_episodes):
         score = 0
+        # Track epsilon for visualization
+        epsilons.append(eps_start)
 
         # Reset environment
         obs, info = env.reset(regenerate_rail=True, regenerate_schedule=True)
+
+        # Reset rendering of video
+        if show_video:
+            env_renderer.reset()
 
         # Build agent specific observations
         for agent in env.get_agent_handles():
@@ -142,6 +164,10 @@ def train_agent(n_episodes):
 
             # Environment step
             next_obs, all_rewards, done, info = env.step(action_dict)
+
+            ## Render video
+            if show_video:
+                env_renderer.render_env(show=True, frames=True, show_observations=True, show_predictions=False)
 
             # Update replay buffer and train agent
             for agent in range(env.get_num_agents()):
@@ -176,34 +202,65 @@ def train_agent(n_episodes):
 
         if episode_idx % 100 == 0:
             end = "\n"
-            torch.save(policy.qnetwork_local, './checkpoints/single-' + str(episode_idx) + '.pth')
+            checkpoint_dir = 'checkpoints/'
+            filename = f'single-{str(episode_idx)}.pth'
+            filename_path = os.path.join(checkpoint_dir, filename)
+            torch.save(policy.qnetwork_local, filename_path)
             action_count = [1] * action_size
         else:
             end = " "
 
-        print(
-            '\rTraining {} agents on {}x{}\t Episode {}\t Average Score: {:.3f}\tDones: {:.2f}%\tEpsilon: {:.2f} \t Action Probabilities: \t {}'.format(
-                env.get_num_agents(),
-                x_dim, y_dim,
-                episode_idx,
-                np.mean(scores_window),
-                100 * np.mean(completion_window),
-                eps_start,
-                action_probs
-            ), end=end)
+        print('\rTraining {} agents on {}x{}  Episode {}  Average Score: {:.3f}  Dones: {:.2f}%  Epsilon: {:.2f}  Action Probs: {}'.format(
+            env.get_num_agents(),
+            x_dim, y_dim,
+            episode_idx,
+            np.mean(scores_window),
+            100 * np.mean(completion_window),
+            eps_start,
+            action_probs
+        ), end=end)
 
     # Plot overall training progress at the end
-    plt.plot(scores)
-    plt.show()
+    time_now = datetime.now().strftime("%Y%m%d-%Hh%Mm%Ss")
+    fnamebase = 'plots/' + time_now + '_dddqn_single_agent'
+    plot_training_curve(scores, "Scores", epsilons, 'Epsilons', fnamebase)
+    plot_training_curve(completion, "Completions", epsilons, 'Epsilons', fnamebase)
 
-    plt.plot(completion)
-    plt.show()
 
+def plot_training_curve(data1, data1label, data2, data2label, fnamebase):
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, label=data1label)
+    ax2 = fig.add_subplot(111, label=data2label, frame_on=False)
+
+    # x axis is number of episodes
+    x = list(range(1, len(data1) + 1, 1))
+
+    ax.plot(x, data1, color="C0")
+    ax.set_xlabel("Episodes", color="C0")
+    ax.set_ylabel(data1label, color="C0")
+    ax.tick_params(axis='x', colors="C0")
+    ax.tick_params(axis='y', colors="C0")
+
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    
+    ax2.plot(x, data2, color="C1")
+    ax2.axes.get_xaxis().set_visible(False)
+    ax2.yaxis.tick_right()
+    ax2.set_ylabel(data2label, color="C1")
+    ax2.yaxis.set_label_position('right')
+    ax2.tick_params(axis='y', colors="C1")
+
+    fig.tight_layout() 
+
+    filename = f'{fnamebase}_{data1label}.png' 
+    plt.savefig(filename)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-n", "--n_episodes", dest="n_episodes", help="number of episodes to run", default=500,
+    parser.add_argument("-n", "--n_episodes", dest="n_episodes", help="number of episodes to run", default=2,
                         type=int)
     args = parser.parse_args()
 
-    train_agent(args.n_episodes)
+    # train_agent(args.n_episodes)
+    train_agent(3)
