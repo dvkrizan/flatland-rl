@@ -40,8 +40,9 @@ To run the single agent file, make sure your `flatland-rl` environment is activa
 `python single_agent_training.py -n <number of episode you wish to train for>`
 
 To run the multi_agent.py file, you need to input an additional set of parameters. We recommend:
-`python multi_agent_training_ppo.py -n 1000 -t 1 -e 1 --n_evaluation_episodes 20 --eps_start 0.8 --batch_size 20 --use_gpu True`
-This will run 1000 episodes with the Test 1 configuration (5 agents, 25x25 grid, malfunction rate of 1/50), use 20 episodes for evaluation and an maximum epsilon threshold of 0.8. If will also run on GPU if you have one available. 
+`python multi_agent_training_ppo.py -n 1000 -t 1 -e 1 --n_evaluation_episodes 20 --eps_start 0.8 --batch_size 20 --use_gpu True --n_agent_fixed`
+This will run 1000 episodes with the Test 1 configuration (5 agents, 25x25 grid, malfunction rate of 1/50), use 20 episodes for evaluation and an maximum epsilon threshold of 0.8. 
+If will also run on GPU if you have one available. Number of agent will stay the same across each episode.
 
 
 ### Generate videos and GIFs
