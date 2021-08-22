@@ -19,23 +19,29 @@ To be able to run the code, you should follow the following steps (we assume you
 1. Create an environment to host your Flatland experiments. Note that you will need to use python 3.6 for compatibility reasons:
 
 `conda create python=3.6 --name flatland-rl`
+
 2. Once your environment has been created, you need to activate it:
 
 `conda activate flatland-rl`
+
 3. Now that your environment has been created, install the flatland-rl python package via conda:
 
 `pip install flatland-rl`
+
 4. You will need additional packages to be able to run the code. Here are the libraries you should be installing:
 
 `pip install argparse psutil tensorboard`
+
 5. If you have a NVIDIA GPU on your computer, install a [recent version of the CUDA toolkit (9 or above)](https://developer.nvidia.com/cuda-toolkit) on your computer, then run the following command to tie it to pytorch (do not install pytorch prior to this):
 
 `conda install pytorch torchvision cudatoolkit=<your version of cuda> -c pytorch`
 
 Otherwise, you will need to pip install pytorch. 
+
 6. To generate nice videos and GIFs of your runs, you will need FFMPEG:
 
 `conda install ffmpeg` (do not pip install if you are on Windows!)
+
 7. Test the demo to make sure everything was installed properly:
 
 `flatland-demo`
@@ -71,6 +77,7 @@ You then need to generate a palette out of the video to generate beautiful gifs:
 and finaly you can generate the gif
 
 `ffmpeg -i episode_0.mp4 -i palette.png -filter_complex "[0:v][1:v] paletteuse" episode_0.gif`
+
 
 
 
