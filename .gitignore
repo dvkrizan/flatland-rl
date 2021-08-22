@@ -122,3 +122,6 @@ flatland-rl.code-workspace
 *.0
 *.3
 david/.vscode/launch.json
+*.actor
+*.value
+*.optimizer

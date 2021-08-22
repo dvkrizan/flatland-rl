@@ -201,7 +201,7 @@ def train_agent(train_params, train_env_params, eval_env_params, obs_params):
                 hdd.free / (2 ** 30)))
 
     # TensorBoard writer
-    writer = SummaryWriter(comment="_" + train_params.policy + "_" + train_params.action_size)
+    writer = SummaryWriter(comment="_PPO_" + train_params.action_size)
 
     training_timer = Timer()
     training_timer.start()
@@ -551,9 +551,6 @@ if __name__ == "__main__":
     parser.add_argument("--use_fast_tree_observation", help="use FastTreeObs instead of stock TreeObs",
                         action='store_true')
     parser.add_argument("--max_depth", help="max depth", default=2, type=int)
-    parser.add_argument("--policy",
-                        help="policy name [DDDQN, PPO, DeadLockAvoidance, DeadLockAvoidanceWithDecision, MultiDecision]",
-                        default="DeadLockAvoidance")
     parser.add_argument("--action_size", help="define the action size [reduced,full]", default="full", type=str)
 
     training_params = parser.parse_args()
