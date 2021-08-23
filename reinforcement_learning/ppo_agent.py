@@ -96,6 +96,7 @@ class PPOPolicy(LearningPolicy):
         super(PPOPolicy, self).__init__()
         # parameters
         self.ppo_parameters = in_parameters
+        print('self.ppo_parameters', self.ppo_parameters)
         if self.ppo_parameters is not None:
             self.hidsize = self.ppo_parameters.hidden_size
             self.buffer_size = self.ppo_parameters.buffer_size
@@ -105,10 +106,10 @@ class PPOPolicy(LearningPolicy):
             # Device
             if self.ppo_parameters.use_gpu and torch.cuda.is_available():
                 self.device = torch.device("cuda:0")
-                # print("🐇 Using GPU")
+                print("🐇 Using GPU")
             else:
                 self.device = torch.device("cpu")
-                # print("🐢 Using CPU")
+                print("🐢 Using CPU")
         else:
             self.hidsize = 128
             self.learning_rate = 1.0e-3
@@ -116,7 +117,7 @@ class PPOPolicy(LearningPolicy):
             self.buffer_size = 32_000
             self.batch_size = 1024
             self.device = torch.device("cpu")
-
+        print('self.device:', self.device)
         self.surrogate_eps_clip = 0.1
         self.K_epoch = 10
         self.weight_loss = 0.5
@@ -142,16 +143,27 @@ class PPOPolicy(LearningPolicy):
         torch_state = torch.tensor(state, dtype=torch.float).to(self.device)
         dist = self.actor_critic_model.get_actor_dist(torch_state)
         action = dist.sample()
+        #print('action', dist.probs)
         return action.item()
 
     def step(self, handle, state, action, reward, next_state, done):
         # record transitions ([state] -> [action] -> [reward, next_state, done])
+        #print('action', action)
+        #print('state', state)
+        #print('reward', reward)
+        #print('next_state', next_state)
+        #print('done', done)
         torch_action = torch.tensor(action, dtype=torch.float).to(self.device)
         torch_state = torch.tensor(state, dtype=torch.float).to(self.device)
+        #print('torch_action', torch_action)
+        #print('torch_state', torch_state)
         # evaluate actor
         dist = self.actor_critic_model.get_actor_dist(torch_state)
+        #print('dist', dist)
         action_logprobs = dist.log_prob(torch_action)
+        #print('action_logprobs', action_logprobs)
         transition = (state, action, reward, next_state, action_logprobs.item(), done)
+        #print('transition', transition)
         self.current_episode_memory.push_transition(handle, transition)
 
     def _push_transitions_to_replay_buffer(self,
@@ -178,6 +190,7 @@ class PPOPolicy(LearningPolicy):
         discounted_reward = 0
         for transition in transitions_array[::-1]:
             state_i, action_i, reward_i, state_next_i, prob_action_i, done_i = transition
+            #print('transition', transition)
 
             state_list.insert(0, state_i)
             action_list.insert(0, action_i)

@@ -1,213 +1,93 @@
-🚂 This code is based on the official starter kit - NeurIPS 2020 Flatland Challenge
+# Reinforcement Learning Applied to Transportation
+###### Capstone students: Claire-Isabelle Carlier and David Krizan
+
+## Overview and Deliverables
+Our Capstone Project goal was to learn about Reinforcement Learning and apply it to a real-world problem. 
+We opted to work with the Flatland environment. Flatland is an open-source toolkit for developing and comparing Multi-Agent Reinforcement Learning algorithms applied to the [vehicle rescheduling problem (VRSP)](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.86.5205&rep=rep1&type=pdf). VRSP seeks to address the situation where a vehicle breaks down or is delayed during operation in a public transportation system, where other vehicles need to be rescheduled to minimize the impact of the issue on the network.
+The Flatland environment has been developed by the Swiss Federal Railway (SBB) and Deutsche Bahnn, in collaboration with AICrowd, a platform for AI Competition (see credits at the bottom). Several competitions were lead using this environment, including the recent NeurIPS 2020 Challenge. 
+
+As a lot of code had already been developed for this environment (and more code was released over the summer), we focused on understanding the concepts, debugging the environment, optimization the learning process, creating visualizations of our results and playing with hyperparameters to improve existing code. 
+Our deliverables include:
+- This git repository to run the code (please see below for instructions on how to run the code and generate GIF clips
+- A [video introduction to core concepts of Reinforcement Learning applied to the Flatland environment](https://drive.google.com/file/d/17QKjBNbdumnPoO_dDJ7yjdAVuP-YGQyU/view?usp=sharing) that we strongly encourage you to watch before reading the blog and playing with the code.
+- A [blog post on Proximal Policy Optimization](https://docs.google.com/document/d/1mW7U8v2ryTWOSyC9N35fEFeV1DhJdKV8IVshs1xa_Xs/edit?usp=sharing), an on-policy technique to solve the Flatland challenge, that includes a code walk-through.
+
+
+## How to run the code
+### Set up the environment
+To be able to run the code, you should follow the following steps (we assume you use conda to host your environments):
+1. Create an environment to host your Flatland experiments. Note that you will need to use python 3.6 for compatibility reasons:
+
+`conda create python=3.6 --name flatland-rl`
+
+2. Once your environment has been created, you need to activate it:
+
+`conda activate flatland-rl`
+
+3. Now that your environment has been created, install the flatland-rl python package via conda:
+
+`pip install flatland-rl`
+
+4. You will need additional packages to be able to run the code. Here are the libraries you should be installing:
+
+`pip install argparse psutil tensorboard`
+
+5. If you have a NVIDIA GPU on your computer, install a [recent version of the CUDA toolkit (9 or above)](https://developer.nvidia.com/cuda-toolkit) on your computer, then run the following command to tie it to pytorch (do not install pytorch prior to this):
+
+`conda install pytorch torchvision cudatoolkit=<your version of cuda> -c pytorch`
+
+Otherwise, you will need to pip install pytorch. 
+
+6. To generate nice videos and GIFs of your runs, you will need FFMPEG:
+
+`conda install ffmpeg` (do not pip install if you are on Windows!)
+
+7. Test the demo to make sure everything was installed properly:
+
+`flatland-demo`
+
+This should pop up a window with little trains moving around. 
+
+Note that you can install a full starter-toolkit from the Flatland github repository but it contains a lot of files to prepare for competition submission which we don't think is useful for the purpose of this project.
+
+
+### Run the single agent or multi-agent files
+To run the single agent file, make sure your `flatland-rl` environment is activated, navigate to the local path to which you saved this  repository and run the single_agent.py as follow:
+
+`python single_agent_training.py -n <number of episode you wish to train for>`
+
+To run the multi_agent.py file, you need to input an additional set of parameters. We recommend:
+
+`python multi_agent_training_ppo.py -n 1000 -t 1 -e 1 --n_evaluation_episodes 20 --eps_start 0.8 --batch_size 20 --use_gpu True --n_agent_fixed`
+
+This will run 1000 episodes with the Test 1 configuration (5 agents, 25x25 grid, malfunction rate of 1/50), use 20 episodes for evaluation and an maximum epsilon threshold of 0.8. 
+If will also run on GPU if you have one available. Number of agent will stay the same across each episode.
+
+
+### Generate videos and GIFs
+We have already included code to capture images at different time step (currently set up to capture them every 100th episode). 
+To generate a mp4 out of the images, navigate to an episode's folder and run the code below (example is with episode 0):
+
+`ffmpeg -y -framerate 12 -i flatland_frame_%04d.png -hide_banner -c:v libx264 -pix_fmt yuv420p -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" episode_0.mp4`
+
+You then need to generate a palette out of the video to generate beautiful gifs:
+
+`ffmpeg  -i episode_0.mp4 -filter_complex "[0:v] palettegen" palette.png`
+
+and finaly you can generate the gif
+
+`ffmpeg -i episode_0.mp4 -i palette.png -filter_complex "[0:v][1:v] paletteuse" episode_0.gif`
+
+
+
+
+
+
+
+🚂 The code is this repository is based on the official starter kit - NeurIPS 2020 Flatland Challenge and has been modified for the purpose of our Capstone project.
 ---
 
-You can use for your own experiments full or reduced action space. 
-
-```python
-def map_action(action):
-    # if full action space is used -> no mapping required
-    if get_action_size() == get_flatland_full_action_size():
-        return action
-    
-    # if reduced action space is used -> the action has to be mapped to real flatland actions
-    # The reduced action space removes the DO_NOTHING action from Flatland.
-    if action == 0:
-        return RailEnvActions.MOVE_LEFT
-    if action == 1:
-        return RailEnvActions.MOVE_FORWARD
-    if action == 2:
-        return RailEnvActions.MOVE_RIGHT
-    if action == 3:
-        return RailEnvActions.STOP_MOVING
-```
-
-```python
-set_action_size_full()
-```
-or 
-```python
-set_action_size_reduced()
-```
-action space. The reduced action space just removes DO_NOTHING. 
-
----
-The used policy is based on the FastTreeObs in the official starter kit - NeurIPS 2020 Flatland Challenge. But the
- FastTreeObs in this repo is an extended version. 
-[fast_tree_obs.py](./utils/fast_tree_obs.py)
-
----
-Have a look into the [run.py](./run.py) file. There you can select using PPO or DDDQN as RL agents. 
- 
-```python
-####################################################
-# EVALUATION PARAMETERS
-set_action_size_full()
-
-# Print per-step logs
-VERBOSE = True
-USE_FAST_TREEOBS = True
-
-if False:
-    # -------------------------------------------------------------------------------------------------------
-    # RL solution
-    # -------------------------------------------------------------------------------------------------------
-    # 116591 adrian_egli
-    # graded	71.305	0.633	RL	Successfully Graded ! More details about this submission can be found at:
-    # http://gitlab.aicrowd.com/adrian_egli/neurips2020-flatland-starter-kit/issues/51
-    # Fri, 22 Jan 2021 23:37:56
-    set_action_size_reduced()
-    load_policy = "DDDQN"
-    checkpoint = "./checkpoints/210122120236-3000.pth"  # 17.011131341978228
-    EPSILON = 0.0
-
-if False:
-    # -------------------------------------------------------------------------------------------------------
-    # RL solution
-    # -------------------------------------------------------------------------------------------------------
-    # 116658 adrian_egli
-    # graded	73.821	0.655	RL	Successfully Graded ! More details about this submission can be found at:
-    # http://gitlab.aicrowd.com/adrian_egli/neurips2020-flatland-starter-kit/issues/52
-    # Sat, 23 Jan 2021 07:41:35
-    set_action_size_reduced()
-    load_policy = "PPO"
-    checkpoint = "./checkpoints/210122235754-5000.pth"  # 16.00113400887389
-    EPSILON = 0.0
-
-if True:
-    # -------------------------------------------------------------------------------------------------------
-    # RL solution
-    # -------------------------------------------------------------------------------------------------------
-    # 116659 adrian_egli
-    # graded	80.579	0.715	RL	Successfully Graded ! More details about this submission can be found at:
-    # http://gitlab.aicrowd.com/adrian_egli/neurips2020-flatland-starter-kit/issues/53
-    # Sat, 23 Jan 2021 07:45:49
-    set_action_size_reduced()
-    load_policy = "DDDQN"
-    checkpoint = "./checkpoints/210122165109-5000.pth"  # 17.993750197899438
-    EPSILON = 0.0
-
-if False:
-    # -------------------------------------------------------------------------------------------------------
-    # !! This is not a RL solution !!!!
-    # -------------------------------------------------------------------------------------------------------
-    # 116727 adrian_egli
-    # graded	106.786	0.768	RL	Successfully Graded ! More details about this submission can be found at:
-    # http://gitlab.aicrowd.com/adrian_egli/neurips2020-flatland-starter-kit/issues/54
-    # Sat, 23 Jan 2021 14:31:50
-    set_action_size_reduced()
-    load_policy = "DeadLockAvoidance"
-    checkpoint = None
-    EPSILON = 0.0
-```
-
----
-A deadlock avoidance agent is implemented. The agent only lets the train take the shortest route. And it tries to avoid as many deadlocks as possible.
-* [dead_lock_avoidance_agent.py](./utils/dead_lock_avoidance_agent.py)
-
-
----
-The policy interface has changed, please have a look into 
-* [policy.py](./reinforcement_learning/policy.py)
-
----
-See the tensorboard training output to get some insights:
-```
-tensorboard --logdir ./runs_bench 
-```
-
----
-```
-python reinforcement_learning/multi_agent_training.py --use_fast_tree_observation  --checkpoint_interval 1000 -n 5000
- --policy DDDQN -t 2 --action_size reduced --buffer_siz 128000
-```
-
-[multi_agent_training.py](./reinforcement_learning/multi_agent_training.py)
-has new or changed parameters. Most important new or changed parameters for training. 
- * policy :  [DDDQN, PPO, DeadLockAvoidance, DeadLockAvoidanceWithDecision, MultiDecision] : Default value
-   DeadLockAvoidance 
- * use_fast_tree_observation : [false,true] : Default value = true  
- * action_size: [full, reduced] : Default value = full
-``` 
-usage: multi_agent_training.py [-h] [-n N_EPISODES] [--n_agent_fixed]
-                               [-t TRAINING_ENV_CONFIG]
-                               [-e EVALUATION_ENV_CONFIG]
-                               [--n_evaluation_episodes N_EVALUATION_EPISODES]
-                               [--checkpoint_interval CHECKPOINT_INTERVAL]
-                               [--eps_start EPS_START] [--eps_end EPS_END]
-                               [--eps_decay EPS_DECAY]
-                               [--buffer_size BUFFER_SIZE]
-                               [--buffer_min_size BUFFER_MIN_SIZE]
-                               [--restore_replay_buffer RESTORE_REPLAY_BUFFER]
-                               [--save_replay_buffer SAVE_REPLAY_BUFFER]
-                               [--batch_size BATCH_SIZE] [--gamma GAMMA]
-                               [--tau TAU] [--learning_rate LEARNING_RATE]
-                               [--hidden_size HIDDEN_SIZE]
-                               [--update_every UPDATE_EVERY]
-                               [--use_gpu USE_GPU] [--num_threads NUM_THREADS]
-                               [--render] [--load_policy LOAD_POLICY]
-                               [--use_fast_tree_observation]
-                               [--max_depth MAX_DEPTH] [--policy POLICY]
-                               [--action_size ACTION_SIZE]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -n N_EPISODES, --n_episodes N_EPISODES
-                        number of episodes to run
-  --n_agent_fixed       hold the number of agent fixed
-  -t TRAINING_ENV_CONFIG, --training_env_config TRAINING_ENV_CONFIG
-                        training config id (eg 0 for Test_0)
-  -e EVALUATION_ENV_CONFIG, --evaluation_env_config EVALUATION_ENV_CONFIG
-                        evaluation config id (eg 0 for Test_0)
-  --n_evaluation_episodes N_EVALUATION_EPISODES
-                        number of evaluation episodes
-  --checkpoint_interval CHECKPOINT_INTERVAL
-                        checkpoint interval
-  --eps_start EPS_START
-                        max exploration
-  --eps_end EPS_END     min exploration
-  --eps_decay EPS_DECAY
-                        exploration decay
-  --buffer_size BUFFER_SIZE
-                        replay buffer size
-  --buffer_min_size BUFFER_MIN_SIZE
-                        min buffer size to start training
-  --restore_replay_buffer RESTORE_REPLAY_BUFFER
-                        replay buffer to restore
-  --save_replay_buffer SAVE_REPLAY_BUFFER
-                        save replay buffer at each evaluation interval
-  --batch_size BATCH_SIZE
-                        minibatch size
-  --gamma GAMMA         discount factor
-  --tau TAU             soft update of target parameters
-  --learning_rate LEARNING_RATE
-                        learning rate
-  --hidden_size HIDDEN_SIZE
-                        hidden size (2 fc layers)
-  --update_every UPDATE_EVERY
-                        how often to update the network
-  --use_gpu USE_GPU     use GPU if available
-  --num_threads NUM_THREADS
-                        number of threads PyTorch can use
-  --render              render 1 episode in 100
-  --load_policy LOAD_POLICY
-                        policy filename (reference) to load
-  --use_fast_tree_observation
-                        use FastTreeObs instead of stock TreeObs
-  --max_depth MAX_DEPTH
-                        max depth
-  --policy POLICY       policy name [DDDQN, PPO, DeadLockAvoidance,
-                        DeadLockAvoidanceWithDecision, MultiDecision]
-  --action_size ACTION_SIZE
-                        define the action size [reduced,full]
-```                        
-
-
----
-If you have any questions write me on the official discord channel **aiAdrian**    
-(Adrian Egli - adrian.egli@gmail.com) 
-
-
-Credits
+NeurIPS Credits
 ---
 
 * Florian Laurent <florian@aicrowd.com>
@@ -223,9 +103,3 @@ Main links
 * [Flatland documentation](https://flatland.aicrowd.com/)
 * [Flatland Challenge](https://www.aicrowd.com/challenges/flatland)
 
-Communication
----
-
-* [Discord Channel](https://discord.com/invite/hCR3CZG)
-* [Discussion Forum](https://discourse.aicrowd.com/c/neurips-2020-flatland-challenge)
-* [Issue Tracker](https://gitlab.aicrowd.com/flatland/flatland/issues/)
