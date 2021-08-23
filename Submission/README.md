@@ -9,8 +9,8 @@ The Flatland environment has been developed by the Swiss Federal Railway (SBB) a
 As a lot of code had already been developed for this environment (and more code was released over the summer), we focused on understanding the concepts, debugging the environment, optimization the learning process, creating visualizations of our results and playing with hyperparameters to improve existing code. 
 Our deliverables include:
 - This git repository to run the code (please see below for instructions on how to run the code and generate GIF clips
-- A [video introduction to core concepts of Reinforcement Learning applied to the Flatland environment](link) that we strongly encourage you to watch before reading the blog and playing with the code.
-- A [blog post on Proximal Policy Optimization](link), an on-policy technique to solve the Flatland challenge, that includes a code walk-through.
+- A [video introduction to core concepts of Reinforcement Learning applied to the Flatland environment](https://drive.google.com/file/d/17QKjBNbdumnPoO_dDJ7yjdAVuP-YGQyU/view?usp=sharing) that we strongly encourage you to watch before reading the blog and playing with the code.
+- A [blog post on Proximal Policy Optimization](https://docs.google.com/document/d/1mW7U8v2ryTWOSyC9N35fEFeV1DhJdKV8IVshs1xa_Xs/edit?usp=sharing), an on-policy technique to solve the Flatland challenge, that includes a code walk-through.
 
 
 ## How to run the code
@@ -52,7 +52,7 @@ Note that you can install a full starter-toolkit from the Flatland github reposi
 
 
 ### Run the single agent or multi-agent files
-To run the single agent file, make sure your `flatland-rl` environment is activated and run the single_agent.py as follow:
+To run the single agent file, make sure your `flatland-rl` environment is activated, navigate to the local path to which you saved this  repository and run the single_agent.py as follow:
 
 `python single_agent_training.py -n <number of episode you wish to train for>`
 
