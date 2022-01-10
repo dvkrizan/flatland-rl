@@ -89,7 +89,7 @@ def train_agent(train_params, train_env_params, eval_env_params, obs_params):
     y_dim = train_env_params.y_dim
     n_cities = train_env_params.n_cities
     max_rails_between_cities = train_env_params.max_rails_between_cities
-    max_rails_in_city = train_env_params.max_rails_in_city
+    max_rail_pairs_in_city = train_env_params.max_rail_pairs_in_city
     seed = train_env_params.seed
 
     # Unique ID for this training
@@ -562,7 +562,7 @@ if __name__ == "__main__":
             "y_dim": 25,
             "n_cities": 2,
             "max_rails_between_cities": 2,
-            "max_rails_in_city": 3,
+            "max_rail_pairs_in_city": 2,
             "malfunction_rate": 1 / 50,
             "seed": 0
         },
@@ -573,7 +573,7 @@ if __name__ == "__main__":
             "y_dim": 25,
             "n_cities": 2,
             "max_rails_between_cities": 2,
-            "max_rails_in_city": 3,
+            "max_rail_pairs_in_city": 2,
             "malfunction_rate": 1 / 50,
             "seed": 0
         },
@@ -584,7 +584,7 @@ if __name__ == "__main__":
             "y_dim": 30,
             "n_cities": 2,
             "max_rails_between_cities": 2,
-            "max_rails_in_city": 3,
+            "max_rail_pairs_in_city": 2,
             "malfunction_rate": 1 / 100,
             "seed": 0
         },
@@ -595,7 +595,7 @@ if __name__ == "__main__":
             "y_dim": 35,
             "n_cities": 3,
             "max_rails_between_cities": 2,
-            "max_rails_in_city": 3,
+            "max_rail_pairs_in_city": 3,
             "malfunction_rate": 1 / 200,
             "seed": 0
         },
@@ -606,7 +606,7 @@ if __name__ == "__main__":
             "y_dim": 40,
             "n_cities": 5,
             "max_rails_between_cities": 2,
-            "max_rails_in_city": 3,
+            "max_rail_pairs_in_city": 3,
             "malfunction_rate": 1 / 200,
             "seed": 0
         },
