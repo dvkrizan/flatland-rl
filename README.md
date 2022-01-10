@@ -16,7 +16,7 @@ Our deliverables include:
 ## How to run the code
 ### Set up the environment
 To be able to run the code, you should follow the following steps (we assume you use conda to host your environments):
-1. Create an environment to host your Flatland experiments. Note that you will need to use python 3.6 for compatibility reasons:
+1. Create an environment to host your Flatland experiments. Note that you will need to use python 3.7 for compatibility reasons:
 
 `conda create python=3.7 --name flatland-rl`
 
@@ -24,9 +24,9 @@ To be able to run the code, you should follow the following steps (we assume you
 
 `conda activate flatland-rl`
 
-3. Now that your environment has been created, install the flatland-rl python package via conda:
+3. Now that your environment has been created, install the flatland-rl python package via conda (as of January 2022, this code was updated to work with version 3.0.9):
 
-`pip install flatland-rl`
+`pip install flatland-rl==3.0.9`
 
 4. You will need additional packages to be able to run the code. Here are the libraries you should be installing:
 
