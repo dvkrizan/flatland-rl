@@ -17,7 +17,7 @@ import torch
 
 from flatland.envs.rail_env import RailEnv
 from flatland.envs.rail_generators import sparse_rail_generator
-from flatland.envs.schedule_generators import sparse_schedule_generator
+from flatland.envs.line_generators import sparse_line_generator
 from utils.observation_utils import normalize_observation
 from flatland.envs.observations import TreeObsForRailEnv
 from flatland.utils.rendertools import RenderTool, AgentRenderVariant
@@ -38,7 +38,7 @@ def train_agent(n_episodes):
     y_dim = 25
     n_cities = 2
     max_rails_between_cities = 2
-    max_rails_in_city = 3
+    max_rail_pairs_in_city = 2
     seed = 42
 
     # Observation parameters
@@ -66,9 +66,9 @@ def train_agent(n_episodes):
             seed=seed,
             grid_mode=False,
             max_rails_between_cities=max_rails_between_cities,
-            max_rails_in_city=max_rails_in_city
+            max_rail_pairs_in_city=max_rail_pairs_in_city
         ),
-        schedule_generator=sparse_schedule_generator(),
+        line_generator=sparse_line_generator(),
         number_of_agents=n_agents,
         obs_builder_object=tree_observation
     )
