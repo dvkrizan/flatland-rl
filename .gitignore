@@ -2,3 +2,6 @@
 .vscode/launch.json
 .DS_Store
 flatland-rl.code-workspace
+images
+*.pyc
+*.bak
