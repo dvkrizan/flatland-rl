@@ -18,7 +18,7 @@ from flatland.envs.observations import TreeObsForRailEnv
 from flatland.envs.predictions import ShortestPathPredictorForRailEnv
 from flatland.envs.rail_env import RailEnv, RailEnvActions
 from flatland.envs.rail_generators import sparse_rail_generator
-from flatland.envs.schedule_generators import sparse_schedule_generator
+from flatland.envs.line_generators import sparse_line_generator
 from flatland.utils.rendertools import RenderTool
 from torch.utils.tensorboard import SummaryWriter
 
@@ -56,7 +56,7 @@ def create_rail_env(env_params, tree_observation):
     y_dim = env_params.y_dim
     n_cities = env_params.n_cities
     max_rails_between_cities = env_params.max_rails_between_cities
-    max_rails_in_city = env_params.max_rails_in_city
+    max_rail_pairs_in_city = env_params.max_rail_pairs_in_city
     seed = env_params.seed
 
     # Break agents from time to time
@@ -72,9 +72,9 @@ def create_rail_env(env_params, tree_observation):
             max_num_cities=n_cities,
             grid_mode=False,
             max_rails_between_cities=max_rails_between_cities,
-            max_rails_in_city=max_rails_in_city
+            max_rail_pairs_in_city=max_rail_pairs_in_city 
         ),
-        schedule_generator=sparse_schedule_generator(),
+        line_generator=sparse_line_generator(),
         number_of_agents=n_agents,
         malfunction_generator_and_process_data=malfunction_from_params(malfunction_parameters),
         obs_builder_object=tree_observation,
@@ -263,7 +263,7 @@ def train_agent(train_params, train_env_params, eval_env_params, obs_params):
 
         # Max number of steps per episode
         # This is the official formula used during evaluations
-        # See details in flatland.envs.schedule_generators.sparse_schedule_generator
+        # See details in flatland.envs.line_generators.sparse_line_generator
         # max_steps = int(4 * 2 * (env.height + env.width + (n_agents / n_cities)))
         max_steps = train_env._max_episode_steps
 
