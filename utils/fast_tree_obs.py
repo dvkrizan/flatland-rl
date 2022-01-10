@@ -3,8 +3,8 @@ from typing import List, Optional, Any
 import numpy as np
 from flatland.core.env_observation_builder import ObservationBuilder
 from flatland.core.grid.grid4_utils import get_new_position
-from flatland.envs.agent_utils import RailAgentStatus
-from flatland.envs.rail_env import fast_count_nonzero, fast_argmax, RailEnvActions
+from flatland.envs.step_utils.states import TrainState
+from flatland.envs.rail_env import RailEnvActions
 
 from utils.agent_action_config import get_flatland_full_action_size
 from utils.agent_can_choose_helper import AgentCanChooseHelper
@@ -22,7 +22,17 @@ Author: Adrian Egli (adrian.egli@gmail.com)
 [Linkedin](https://www.researchgate.net/profile/Adrian_Egli2)
 [Researchgate](https://www.linkedin.com/in/adrian-egli-733a9544/)
 """
+def fast_count_nonzero(possible_transitions: (int, int, int, int)):
+    return possible_transitions[0] + possible_transitions[1] + possible_transitions[2] + possible_transitions[3]
 
+def fast_argmax(possible_transitions: (int, int, int, int)) -> bool:
+    if possible_transitions[0] == 1:
+        return 0
+    if possible_transitions[1] == 1:
+        return 1
+    if possible_transitions[2] == 1:
+        return 2
+    return 3
 
 class FastTreeObs(ObservationBuilder):
 
@@ -197,10 +207,10 @@ class FastTreeObs(ObservationBuilder):
         agent = self.env.agents[handle]
 
         agent_done = False
-        if agent.status == RailAgentStatus.READY_TO_DEPART:
+        if agent.state == TrainState.READY_TO_DEPART:
             agent_virtual_position = agent.initial_position
             observation[4] = 1
-        elif agent.status == RailAgentStatus.ACTIVE:
+        elif agent.state.is_on_map_state():
             agent_virtual_position = agent.position
             observation[5] = 1
         else:
