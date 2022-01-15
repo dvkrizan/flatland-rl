@@ -1,15 +1,16 @@
 import numpy as np
 
 from flatland.core.grid.grid4_utils import get_new_position
-from flatland.envs.agent_utils import RailAgentStatus
-from flatland.envs.rail_env import fast_count_nonzero
+from flatland.envs.step_utils.states import TrainState
 
+def fast_count_nonzero(possible_transitions: (int, int, int, int)):
+    return possible_transitions[0] + possible_transitions[1] + possible_transitions[2] + possible_transitions[3]
 
 def get_agent_positions(env):
     agent_positions: np.ndarray = np.full((env.height, env.width), -1)
     for agent_handle in env.get_agent_handles():
         agent = env.agents[agent_handle]
-        if agent.status == RailAgentStatus.ACTIVE:
+        if agent.state.is_on_map_state():
             position = agent.position
             if position is None:
                 position = agent.initial_position
@@ -21,14 +22,14 @@ def get_agent_targets(env):
     agent_targets = []
     for agent_handle in env.get_agent_handles():
         agent = env.agents[agent_handle]
-        if agent.status == RailAgentStatus.ACTIVE:
+        if agent.state.is_on_map_state():
             agent_targets.append(agent.target)
     return agent_targets
 
 
 def check_for_deadlock(handle, env, agent_positions, check_position=None, check_direction=None):
     agent = env.agents[handle]
-    if agent.status == RailAgentStatus.DONE or agent.status == RailAgentStatus.DONE_REMOVED:
+    if agent.state == TrainState.DONE or (agent.state == TrainState.DONE and not agent.state.is_on_map_state()):
         return False
 
     position = agent.position
@@ -66,17 +67,17 @@ def check_if_all_blocked(env):
     # First build a map of agents in each position
     location_has_agent = {}
     for agent in env.agents:
-        if agent.status in [RailAgentStatus.ACTIVE, RailAgentStatus.DONE] and agent.position:
+        if (agent.state.is_on_map_state() or TrainState.DONE) and agent.position:
             location_has_agent[tuple(agent.position)] = 1
 
     # Looks for any agent that can still move
     for handle in env.get_agent_handles():
         agent = env.agents[handle]
-        if agent.status == RailAgentStatus.READY_TO_DEPART:
+        if agent.state == TrainState.READY_TO_DEPART:
             agent_virtual_position = agent.initial_position
-        elif agent.status == RailAgentStatus.ACTIVE:
+        elif agent.state.is_on_map_state():
             agent_virtual_position = agent.position
-        elif agent.status == RailAgentStatus.DONE:
+        elif agent.state == TrainState.DONE:
             agent_virtual_position = agent.target
         else:
             continue

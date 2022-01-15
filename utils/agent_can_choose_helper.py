@@ -1,6 +1,8 @@
 from flatland.core.grid.grid4_utils import get_new_position
-from flatland.envs.agent_utils import RailAgentStatus
-from flatland.envs.rail_env import fast_count_nonzero
+from flatland.envs.step_utils.states import TrainState
+
+def fast_count_nonzero(possible_transitions: (int, int, int, int)):
+    return possible_transitions[0] + possible_transitions[1] + possible_transitions[2] + possible_transitions[3]
 
 
 class AgentCanChooseHelper:
@@ -97,7 +99,7 @@ class AgentCanChooseHelper:
                     self.env.agents[a].direction)
             agents_on_switch.update({a: ret_agents_on_switch})
             agents_on_switch_all.update({a: ret_agents_on_switch_all})
-            ready_to_depart = self.env.agents[a].status == RailAgentStatus.READY_TO_DEPART
+            ready_to_depart = self.env.agents[a].state == TrainState.READY_TO_DEPART
             agents_near_to_switch.update({a: (ret_agents_near_to_switch and not ready_to_depart)})
 
             agents_can_choose.update({a: agents_on_switch[a] or agents_near_to_switch[a]})

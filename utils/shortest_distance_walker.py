@@ -1,7 +1,18 @@
 import numpy as np
 from flatland.core.grid.grid4_utils import get_new_position
 from flatland.envs.rail_env import RailEnv, RailEnvActions
-from flatland.envs.rail_env import fast_count_nonzero, fast_argmax
+
+def fast_count_nonzero(possible_transitions: (int, int, int, int)):
+    return possible_transitions[0] + possible_transitions[1] + possible_transitions[2] + possible_transitions[3]
+
+def fast_argmax(possible_transitions: (int, int, int, int)) -> bool:
+    if possible_transitions[0] == 1:
+        return 0
+    if possible_transitions[1] == 1:
+        return 1
+    if possible_transitions[2] == 1:
+        return 2
+    return 3
 
 
 class ShortestDistanceWalker:
@@ -85,3 +96,4 @@ class ShortestDistanceWalker:
                 return position, direction, RailEnvActions.STOP_MOVING, possible_transitions
             self.callback_one_step(handle, agent, new_position, new_direction, action, possible_transitions)
         return new_position, new_direction, action, possible_transitions
+
