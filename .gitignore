@@ -5,3 +5,7 @@ flatland-rl.code-workspace
 images
 *.pyc
 *.bak
+*.png
+*.pth
+*.0
+

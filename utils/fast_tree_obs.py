@@ -275,3 +275,4 @@ class FastTreeObs(ObservationBuilder):
         observation[np.isnan(observation)] = -1
 
         return observation
+
