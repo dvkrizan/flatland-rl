@@ -9,3 +9,7 @@ images
 *.pth
 *.0
 
+*.actor
+*.optimizer
+*.value
+*.value
